@@ -1,94 +1,191 @@
-/* 기본 설정 및 드래그 방지 */
+/* 기본 초기화 및 보안 (드래그/선택 차단) */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    /* 텍스트 및 이미지 드래그 선택 완벽 차단 */
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    -webkit-touch-callout: none; /* 모바일 롱탭 차단 */
 }
 
 body {
-    /* 깊은 밤하늘 느낌의 그라데이션 */
-    background: linear-gradient(to bottom, #020111 0%, #20124d 100%);
+    /* 더 깊고 신비로운 우주 그라데이션 */
+    background: linear-gradient(to bottom, #03001e, #7303c0, #ec38bc);
+    background-attachment: fixed;
     color: #fff;
     font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     overflow-x: hidden;
-    position: relative;
 }
 
-/* 은하수 배경 컨테이너 */
-#stars-container {
+/* 캔버스 배경 (프레임 드랍 방지 하드웨어 가속) */
+#milkyway-canvas {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: -1;
-    pointer-events: none; /* 클릭 방해 방지 */
+    pointer-events: none;
 }
 
-.star {
-    position: absolute;
-    background-color: white;
+/* 🎵 음악 플레이어 (우측 상단 동그란 음반) */
+.music-player-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.music-disc {
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, #333 40%, #111 41%, #000 100%);
     border-radius: 50%;
-    /* 프레임 드랍이 없는 opacity, transform 애니메이션 사용 */
-    animation: twinkle infinite ease-in-out;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transform: translateZ(0); /* 모바일 최적화 */
 }
 
-@keyframes twinkle {
-    0%, 100% { opacity: 0.2; transform: scale(0.8); }
-    50% { opacity: 1; transform: scale(1.2); }
+.disc-center {
+    width: 18px;
+    height: 18px;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
 }
 
-/* 메인 콘텐츠 영역 (모바일 최적화) */
+/* 음악 재생 중 회전 애니메이션 */
+.music-disc.playing {
+    animation: rotateDisc 4s linear infinite;
+}
+
+@keyframes rotateDisc {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* 메인 콘텐츠 영역 */
 .content {
-    padding: 40px 20px;
-    max-width: 600px; /* 데스크탑에서도 너무 퍼지지 않게 제한 */
+    flex: 1;
+    padding: 90px 20px 40px 20px; /* 플레이어를 가리지 않도록 상단 여백 확보 */
+    max-width: 650px;
+    width: 100%;
     margin: 0 auto;
     text-align: center;
 }
 
 h1 {
     font-size: 1.8rem;
-    margin-bottom: 30px;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    margin-bottom: 35px;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
 }
 
+/* 약속 보드 */
 #promise-board {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
+    min-height: 300px; /* 페이지 전환 시 덜컹거림 방지 */
 }
 
-/* 약속 카드 디자인 (트렌디한 유리 질감) */
+/* 카드/글 형식 디자인 (고급스러운 유리 질감) */
 .promise-card {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 20px;
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 24px;
+    border-radius: 16px;
     text-align: left;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease;
-}
-
-.promise-card:hover {
-    transform: translateY(-2px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .promise-date {
-    font-size: 0.8rem;
-    color: #b0b0b0;
-    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 12px;
+    font-weight: bold;
 }
 
+/* 📝 긴 줄글, 문단 형식 지원 */
 .promise-text {
-    font-size: 1.1rem;
-    line-height: 1.5;
-    word-break: keep-all;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    word-break: break-all;
+    white-space: pre-wrap; /* 엔터(줄바꿈)를 화면에 그대로 반영해줍니다 */
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* 페이지네이션 (숫자 + 화살표) */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 40px;
+}
+
+.page-btn, .page-num {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.page-num.active {
+    background: rgba(255, 255, 255, 0.9);
+    color: #20124d;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+.page-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.page-numbers {
+    display: flex;
+    gap: 6px;
+}
+
+/* 푸터 (저작권) */
+footer {
+    padding: 25px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+footer p {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* 모바일 전용 반응형 */
+@media (max-width: 480px) {
+    .content { padding-top: 80px; }
+    h1 { font-size: 1.5rem; }
+    .promise-card { padding: 18px; }
+    .promise-text { font-size: 0.95rem; }
+    .music-player-container { top: 15px; right: 15px; }
+    .music-disc { width: 50px; height: 50px; }
 }
