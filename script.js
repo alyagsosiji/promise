@@ -11,11 +11,13 @@ document.addEventListener('keydown', event => {
     }
 });
 
-// --- 2. 고성능 은하수 애니메이션 (Canvas 적용) ---
+// --- 2. 우주 은하수 애니메이션 (별 무빙 & 별똥별 추가) ---
 const canvas = document.getElementById('milkyway-canvas');
 const ctx = canvas.getContext('2d');
 let stars = [];
-const maxStars = 150;
+let shootingStars = [];
+const maxStars = 200; // 별 개수 증가
+const colors = ['#ffffff', '#ffe9c4', '#d4fbff', '#fcd4ff']; // 다채로운 별 색상
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -29,46 +31,87 @@ function initStars() {
         stars.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
-            size: Math.random() * 1.8 + 0.2,
+            size: Math.random() * 1.5 + 0.2,
             alpha: Math.random(),
-            speed: Math.random() * 0.02 + 0.005
+            speedAlpha: Math.random() * 0.02 + 0.005,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            // 별이 천천히 대각선으로 흐르는 속도
+            vx: (Math.random() - 0.5) * 0.2, 
+            vy: (Math.random() - 0.5) * 0.2
         });
     }
 }
 
-function animateStars() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // 신비로운 안개 구름 효과
-    const gradient = ctx.createRadialGradient(
-        canvas.width / 2, canvas.height / 2, 10,
-        canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
-    );
-    gradient.addColorStop(0, 'rgba(115, 3, 192, 0.15)');
-    gradient.addColorStop(0.5, 'rgba(236, 56, 188, 0.05)');
-    gradient.addColorStop(1, 'rgba(3, 0, 30, 0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+// 별똥별(유성) 생성 함수
+function createShootingStar() {
+    if (Math.random() > 0.02) return; // 생성 확률
+    shootingStars.push({
+        x: Math.random() * canvas.width,
+        y: 0,
+        length: Math.random() * 80 + 20,
+        speed: Math.random() * 10 + 5,
+        opacity: 1
+    });
+}
 
-    // 별 렌더링
+function animateStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // 그라데이션은 CSS로 넘겨서 지우기만 함
+    
+    // 일반 별 렌더링
     for (let i = 0; i < maxStars; i++) {
         let s = stars[i];
-        s.alpha += s.speed;
-        if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
         
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.2, Math.min(s.alpha, 1))})`;
+        // 깜빡임
+        s.alpha += s.speedAlpha;
+        if (s.alpha > 1 || s.alpha < 0) s.speedAlpha = -s.speedAlpha;
+        
+        // 별의 미세한 이동
+        s.x += s.vx;
+        s.y += s.vy;
+        
+        // 화면 밖으로 나가면 반대편에서 등장
+        if (s.x < 0) s.x = canvas.width;
+        if (s.x > canvas.width) s.x = 0;
+        if (s.y < 0) s.y = canvas.height;
+        if (s.y > canvas.height) s.y = 0;
+        
+        ctx.fillStyle = s.color;
+        ctx.globalAlpha = Math.max(0, Math.min(s.alpha, 1));
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
         ctx.fill();
     }
+    
+    // 별똥별 렌더링
+    createShootingStar();
+    for (let i = shootingStars.length - 1; i >= 0; i--) {
+        let ss = shootingStars[i];
+        ss.x -= ss.speed;
+        ss.y += ss.speed;
+        ss.opacity -= 0.02;
+        
+        ctx.globalAlpha = Math.max(0, ss.opacity);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(ss.x, ss.y);
+        ctx.lineTo(ss.x + ss.length, ss.y - ss.length);
+        ctx.stroke();
+        
+        if (ss.opacity <= 0) {
+            shootingStars.splice(i, 1);
+        }
+    }
+    ctx.globalAlpha = 1; // 알파값 초기화
+    
     requestAnimationFrame(animateStars);
 }
+
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 requestAnimationFrame(animateStars);
 
-// --- 3. ❤️ 약속 데이터 (긴 문장 및 줄바꿈 지원) ---
-// 텍스트 안에 \n 을 적으면 화면에서 줄바꿈(엔터)으로 표시됩니다!
+// --- 3. ❤️ 약속 데이터 (여기서 수정 및 추가!) ---
 const promises = [
     {
         date: "2026. 06. 28",
@@ -96,12 +139,12 @@ const promises = [
     },
     {
         date: "2026. 12. 25",
-        text: "행복한 크리스마스 맞이하기 🎄\n이렇게 길고 서술형으로 텍스트를 작성해도, 카드가 화면에 맞게 예쁘게 쭉 늘어나며 모든 글을 보여줍니다. 폰이나 PC 어디서든 예쁘게 보여요."
+        text: "행복한 크리스마스 맞이하기 🎄\n이렇게 길고 서술형으로 텍스트를 작성해도, 카드가 화면에 맞게 예쁘게 쭉 늘어나며 모든 글을 보여줍니다."
     }
 ];
 
-// --- 4. 페이지네이션 (5개 단위로 이동) ---
-const itemsPerPage = 3; // 한 페이지에 보여줄 약속 개수 (수정 가능)
+// --- 4. 페이지네이션 (5개 단위 그룹화 & 자연스러운 이동) ---
+const itemsPerPage = 3; 
 let currentPage = 1;
 const maxPageButtons = 5;
 
@@ -132,7 +175,6 @@ function setupPagination() {
     const totalPages = Math.ceil(promises.length / itemsPerPage);
     if(totalPages === 0) return;
 
-    // 현재 1~5페이지 구간인지, 6~10페이지 구간인지 계산
     let currentGroup = Math.floor((currentPage - 1) / maxPageButtons);
     let startPage = currentGroup * maxPageButtons + 1;
     let endPage = Math.min(startPage + maxPageButtons - 1, totalPages);
@@ -150,7 +192,6 @@ function setupPagination() {
         pageNumbersContainer.appendChild(btn);
     }
 
-    // 화살표 로직
     prevBtn.onclick = () => {
         if (currentPage > 1) {
             currentPage--;
@@ -164,7 +205,6 @@ function setupPagination() {
         }
     };
 
-    // 1페이지에선 뒤로가기 끄고, 마지막 페이지에선 앞으로가기 끄기
     prevBtn.disabled = (currentPage === 1);
     nextBtn.disabled = (currentPage === totalPages);
 }
@@ -172,11 +212,11 @@ function setupPagination() {
 function updatePage() {
     displayPromises(currentPage);
     setupPagination();
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // 페이지 넘기면 부드럽게 위로
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 updatePage();
 
-// --- 5. 음악 플레이어 재생/일시정지 ---
+// --- 5. 음악 플레이어 ---
 const musicDisc = document.getElementById('music-disc');
 const bgm = document.getElementById('bgm');
 
@@ -185,7 +225,7 @@ musicDisc.addEventListener('click', () => {
         bgm.play().then(() => {
             musicDisc.classList.add('playing');
         }).catch(err => {
-            alert("음악 파일(music.mp3)이 폴더에 없거나 브라우저 정책에 의해 재생이 차단되었습니다.");
+            alert("음악 파일(music.mp3)을 찾을 수 없습니다. 경로를 확인해 주세요!");
         });
     } else {
         bgm.pause();
