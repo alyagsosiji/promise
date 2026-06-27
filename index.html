@@ -7,13 +7,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="stars-container"></div>
+    <canvas id="milkyway-canvas"></canvas>
     
+    <div class="music-player-container">
+        <div class="music-disc" id="music-disc">
+            <div class="disc-center"></div>
+        </div>
+        <audio id="bgm" src="music.mp3" loop></audio>
+    </div>
+
     <main class="content">
         <h1>우리의 소중한 약속 💫</h1>
-        <div id="promise-board">
-            </div>
+        
+        <div id="promise-board"></div>
+        
+        <div class="pagination" id="pagination">
+            <button class="page-btn prev-btn" id="prev-btn">&lt;</button>
+            <div class="page-numbers" id="page-numbers"></div>
+            <button class="page-btn next-btn" id="next-btn">&gt;</button>
+        </div>
     </main>
+
+    <footer>
+        <p>&copy; 2026. atritime. All Rights Reserved.</p>
+    </footer>
 
     <script src="script.js"></script>
 </body>
