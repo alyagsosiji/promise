@@ -7,111 +7,106 @@ document.addEventListener('keydown', event => {
         (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J')) ||
         (event.ctrlKey && (event.key === 'U' || event.key === 'C' || event.key === 'A' || event.key === 'S'))
     ) {
+        // 기능은 막지만, 에러 확인을 위해 잠시 주석 처리하거나 지우셔도 됩니다.
         event.preventDefault();
     }
 });
 
-// --- 2. 우주 은하수 애니메이션 (별 무빙 & 별똥별 추가) ---
+// --- 2. 우주 은하수 애니메이션 (안전장치 추가) ---
 const canvas = document.getElementById('milkyway-canvas');
-const ctx = canvas.getContext('2d');
+let ctx;
 let stars = [];
 let shootingStars = [];
-const maxStars = 200; // 별 개수 증가
-const colors = ['#ffffff', '#ffe9c4', '#d4fbff', '#fcd4ff']; // 다채로운 별 색상
+const maxStars = 200;
+const colors = ['#ffffff', '#ffe9c4', '#d4fbff', '#fcd4ff'];
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    initStars();
-}
-
-function initStars() {
-    stars = [];
-    for (let i = 0; i < maxStars; i++) {
-        stars.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 1.5 + 0.2,
-            alpha: Math.random(),
-            speedAlpha: Math.random() * 0.02 + 0.005,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            // 별이 천천히 대각선으로 흐르는 속도
-            vx: (Math.random() - 0.5) * 0.2, 
-            vy: (Math.random() - 0.5) * 0.2
-        });
-    }
-}
-
-// 별똥별(유성) 생성 함수
-function createShootingStar() {
-    if (Math.random() > 0.02) return; // 생성 확률
-    shootingStars.push({
-        x: Math.random() * canvas.width,
-        y: 0,
-        length: Math.random() * 80 + 20,
-        speed: Math.random() * 10 + 5,
-        opacity: 1
-    });
-}
-
-function animateStars() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // 그라데이션은 CSS로 넘겨서 지우기만 함
+// 캔버스가 HTML에 존재할 때만 배경 애니메이션 실행 (에러 방지)
+if (canvas) {
+    ctx = canvas.getContext('2d');
     
-    // 일반 별 렌더링
-    for (let i = 0; i < maxStars; i++) {
-        let s = stars[i];
-        
-        // 깜빡임
-        s.alpha += s.speedAlpha;
-        if (s.alpha > 1 || s.alpha < 0) s.speedAlpha = -s.speedAlpha;
-        
-        // 별의 미세한 이동
-        s.x += s.vx;
-        s.y += s.vy;
-        
-        // 화면 밖으로 나가면 반대편에서 등장
-        if (s.x < 0) s.x = canvas.width;
-        if (s.x > canvas.width) s.x = 0;
-        if (s.y < 0) s.y = canvas.height;
-        if (s.y > canvas.height) s.y = 0;
-        
-        ctx.fillStyle = s.color;
-        ctx.globalAlpha = Math.max(0, Math.min(s.alpha, 1));
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-        ctx.fill();
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initStars();
     }
-    
-    // 별똥별 렌더링
-    createShootingStar();
-    for (let i = shootingStars.length - 1; i >= 0; i--) {
-        let ss = shootingStars[i];
-        ss.x -= ss.speed;
-        ss.y += ss.speed;
-        ss.opacity -= 0.02;
-        
-        ctx.globalAlpha = Math.max(0, ss.opacity);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(ss.x, ss.y);
-        ctx.lineTo(ss.x + ss.length, ss.y - ss.length);
-        ctx.stroke();
-        
-        if (ss.opacity <= 0) {
-            shootingStars.splice(i, 1);
+
+    function initStars() {
+        stars = [];
+        for (let i = 0; i < maxStars; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 1.5 + 0.2,
+                alpha: Math.random(),
+                speedAlpha: Math.random() * 0.02 + 0.005,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vx: (Math.random() - 0.5) * 0.2, 
+                vy: (Math.random() - 0.5) * 0.2
+            });
         }
     }
-    ctx.globalAlpha = 1; // 알파값 초기화
-    
+
+    function createShootingStar() {
+        if (Math.random() > 0.02) return;
+        shootingStars.push({
+            x: Math.random() * canvas.width,
+            y: 0,
+            length: Math.random() * 80 + 20,
+            speed: Math.random() * 10 + 5,
+            opacity: 1
+        });
+    }
+
+    function animateStars() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        for (let i = 0; i < maxStars; i++) {
+            let s = stars[i];
+            s.alpha += s.speedAlpha;
+            if (s.alpha > 1 || s.alpha < 0) s.speedAlpha = -s.speedAlpha;
+            s.x += s.vx;
+            s.y += s.vy;
+            if (s.x < 0) s.x = canvas.width;
+            if (s.x > canvas.width) s.x = 0;
+            if (s.y < 0) s.y = canvas.height;
+            if (s.y > canvas.height) s.y = 0;
+            
+            ctx.fillStyle = s.color;
+            ctx.globalAlpha = Math.max(0, Math.min(s.alpha, 1));
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        createShootingStar();
+        for (let i = shootingStars.length - 1; i >= 0; i--) {
+            let ss = shootingStars[i];
+            ss.x -= ss.speed;
+            ss.y += ss.speed;
+            ss.opacity -= 0.02;
+            
+            ctx.globalAlpha = Math.max(0, ss.opacity);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(ss.x, ss.y);
+            ctx.lineTo(ss.x + ss.length, ss.y - ss.length);
+            ctx.stroke();
+            
+            if (ss.opacity <= 0) {
+                shootingStars.splice(i, 1);
+            }
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(animateStars);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
     requestAnimationFrame(animateStars);
 }
 
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-requestAnimationFrame(animateStars);
-
-// --- 3. ❤️ 약속 데이터 (여기서 수정 및 추가!) ---
+// --- 3. ❤️ 약속 데이터 ---
 const promises = [
     {
         date: "2026. 04. 16",
@@ -127,7 +122,7 @@ const promises = [
     }
 ];
 
-// --- 4. 페이지네이션 (5개 단위 그룹화 & 자연스러운 이동) ---
+// --- 4. 페이지네이션 (안전장치 추가) ---
 const itemsPerPage = 3; 
 let currentPage = 1;
 const maxPageButtons = 5;
@@ -138,6 +133,8 @@ const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 
 function displayPromises(page) {
+    if (!board) return; // board가 없으면 실행 중지 (에러 방지)
+    
     board.innerHTML = "";
     let start = (page - 1) * itemsPerPage;
     let end = start + itemsPerPage;
@@ -155,6 +152,8 @@ function displayPromises(page) {
 }
 
 function setupPagination() {
+    if (!pageNumbersContainer || !prevBtn || !nextBtn) return; // 요소 없으면 중지
+    
     pageNumbersContainer.innerHTML = "";
     const totalPages = Math.ceil(promises.length / itemsPerPage);
     if(totalPages === 0) return;
@@ -198,21 +197,25 @@ function updatePage() {
     setupPagination();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// 최초 실행
 updatePage();
 
 // --- 5. 음악 플레이어 ---
 const musicDisc = document.getElementById('music-disc');
 const bgm = document.getElementById('bgm');
 
-musicDisc.addEventListener('click', () => {
-    if (bgm.paused) {
-        bgm.play().then(() => {
-            musicDisc.classList.add('playing');
-        }).catch(err => {
-            alert("음악 파일(music.mp3)을 찾을 수 없습니다. 경로를 확인해 주세요!");
-        });
-    } else {
-        bgm.pause();
-        musicDisc.classList.remove('playing');
-    }
-});
+if (musicDisc && bgm) {
+    musicDisc.addEventListener('click', () => {
+        if (bgm.paused) {
+            bgm.play().then(() => {
+                musicDisc.classList.add('playing');
+            }).catch(err => {
+                alert("음악 파일(music.mp3)을 찾을 수 없습니다. 경로를 확인해 주세요!");
+            });
+        } else {
+            bgm.pause();
+            musicDisc.classList.remove('playing');
+        }
+    });
+}
